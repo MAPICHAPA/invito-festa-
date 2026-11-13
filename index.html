@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Risposta all'invito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bellefair&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#b5122a;
+    --pink:#ee8f92;
+    --paper:#f7f3f0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper)}
+  body{
+    min-height:100svh;
+    overflow-x:hidden;
+    font-family:Helvetica,Arial,sans-serif;
+    color:#111;
+    position:relative;
+    -webkit-tap-highlight-color:transparent;
+  }
+  /* texture carta */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .42  0 0 0 0 .4  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .page{
+    position:relative;z-index:1;
+    min-height:100svh;
+    max-width:560px;margin:0 auto;
+    display:flex;flex-direction:column;align-items:center;
+    padding:34px 0 30px;
+  }
+
+  /* ornamenti agli angoli */
+  .corner{position:fixed;width:clamp(110px,26vw,190px);height:auto;z-index:0;pointer-events:none;opacity:.9}
+  .corner.tl{top:8px;left:8px}
+  .corner.tr{top:8px;right:8px;transform:scaleX(-1)}
+  .corner.bl{bottom:8px;left:8px;transform:scaleY(-1)}
+  .corner.br{bottom:8px;right:8px;transform:scale(-1,-1)}
+  .corner path{fill:none;stroke:var(--pink);stroke-width:4.2;stroke-dasharray:2.2 2.2}
+
+  .std{font-family:'Bellefair',serif;font-size:13px;letter-spacing:.04em;color:#222;text-align:center}
+
+  .star{position:fixed;top:48%;color:var(--red);font-size:22px;z-index:1}
+  .star.l{left:10px}.star.r{right:10px}
+
+  /* ---------- BUSTA ---------- */
+  .stage{
+    width:min(78vw,430px);
+    margin-top:120px;
+    position:relative;
+  }
+  .envelope{
+    --w:min(78vw,430px);
+    position:relative;
+    width:100%;
+    aspect-ratio:440/290;
+    cursor:pointer;
+    outline:none;
+    filter:drop-shadow(0 6px 10px rgba(0,0,0,.18));
+  }
+  .envelope .back{
+    position:absolute;inset:0;background:linear-gradient(#c9c9c9,#d6d6d6);z-index:1;
+  }
+  .letter{
+    position:absolute;z-index:2;
+    left:8%;width:84%;top:6%;height:92%;
+    background:#f3f3f1;
+    box-shadow:0 0 0 1px rgba(0,0,0,.06);
+    transition:transform .9s cubic-bezier(.3,.9,.3,1) .45s;
+  }
+  .envelope.open .letter{transform:translateY(-58%)}
+
+  .photo{
+    position:absolute;left:50%;top:12%;
+    width:34%;aspect-ratio:3/4;
+    transform:translateX(-50%);
+    background:#1a1a1a;
+    border:4px solid #f3f3f1;
+    outline:1px solid rgba(0,0,0,.08);
+    background-image:url("foto.jpg"),linear-gradient(160deg,#444,#111);
+    background-size:cover;background-position:center;
+    filter:grayscale(1) contrast(1.05);
+  }
+  .hat{
+    position:absolute;left:50%;top:calc(12% - 34px);
+    transform:translateX(-50%);
+    width:0;height:0;
+    border-left:11px solid transparent;border-right:11px solid transparent;
+    border-bottom:44px solid var(--red);
+    z-index:3;
+  }
+  .hat::after{
+    content:"✦";position:absolute;left:-6px;top:-54px;font-size:12px;color:var(--red);
+  }
+  .stamp{
+    position:absolute;left:50%;bottom:9%;
+    transform:translateX(-50%) rotate(-7deg);
+    font-family:'Bellefair',serif;letter-spacing:.18em;
+    color:var(--red);border:2px solid var(--red);padding:3px 12px;font-size:clamp(11px,3vw,15px);
+    border-radius:4px;opacity:0;white-space:nowrap;
+    transition:opacity .4s ease 1.3s;
+  }
+  .envelope.open .stamp{opacity:.9}
+
+  .pocket{
+    position:absolute;inset:0;z-index:3;
+    background:linear-gradient(170deg,#e4e4e4,#d4d4d4);
+    clip-path:polygon(0 0,50% 50%,100% 0,100% 100%,0 100%);
+  }
+  .flap{
+    position:absolute;left:0;top:0;width:100%;height:50%;z-index:4;
+    background:linear-gradient(#ededed,#dcdcdc);
+    clip-path:polygon(0 0,100% 0,50% 100%);
+    transform-origin:top center;
+    transition:transform .6s ease, z-index 0s linear .3s;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.2));
+  }
+  .envelope.open .flap{transform:rotateX(180deg);z-index:1}
+
+  .cta{
+    position:absolute;left:50%;top:66%;transform:translateX(-50%);
+    z-index:5;
+    font-family:'Bellefair',serif;color:var(--red);
+    font-size:clamp(26px,7vw,36px);letter-spacing:.04em;
+    animation:pulse 1.8s ease-in-out infinite;
+    transition:opacity .3s ease;
+  }
+  .envelope.open .cta{opacity:0;animation:none;pointer-events:none}
+  @keyframes pulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.08)}}
+
+  .hint{
+    margin-top:14px;font-family:'Bellefair',serif;font-size:14px;color:#444;text-align:center;
+    transition:opacity .4s ease;
+  }
+  body.revealed .hint{opacity:0}
+
+  /* ---------- TESTI ---------- */
+  .copy{
+    width:min(92vw,520px);
+    margin-top:26px;
+    position:relative;
+    display:grid;
+  }
+  .state{
+    grid-area:1/1;
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .state.after{opacity:0;transform:translateY(10px);pointer-events:none}
+  body.revealed .state.before{opacity:0;transform:translateY(-10px);pointer-events:none}
+  body.revealed .state.after{opacity:1;transform:none;pointer-events:auto;transition-delay:.9s}
+
+  .small{
+    font-size:clamp(19px,5vw,24px);line-height:1.15;
+    margin-left:8%;
+  }
+  .big{
+    font-family:'Pinyon Script',cursive;color:var(--red);
+    font-size:clamp(74px,22vw,128px);line-height:.95;
+    margin-top:-4px;text-align:center;
+  }
+  .date{
+    margin-top:-2px;margin-left:auto;margin-right:9%;width:max-content;
+    font-size:clamp(19px,5vw,24px);line-height:1.15;
+  }
+  .date small{display:block;font-size:12px;color:#555;margin-top:4px;max-width:210px}
+
+  .foot{margin-top:auto;padding-top:26px}
+
+  .conf{position:fixed;pointer-events:none;z-index:10;color:var(--red);font-size:18px;will-change:transform,opacity}
+</style>
+</head>
+<body>
+
+<!-- libreria ornamento -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="flo" viewBox="0 0 160 160">
+      <path d="M8 8 C 40 6, 70 14, 84 40 C 96 62, 80 86, 60 80 C 44 75, 46 56, 60 58"/>
+      <path d="M8 8 C 6 40, 14 70, 40 84 C 62 96, 86 80, 80 60 C 75 44, 56 46, 58 60"/>
+      <path d="M26 26 C 48 24, 62 38, 64 56"/>
+      <path d="M26 26 C 24 48, 38 62, 56 64"/>
+      <path d="M96 12 C 118 10, 132 26, 122 40 C 114 48, 100 40, 108 32"/>
+      <path d="M12 96 C 10 118, 26 132, 40 122 C 48 114, 40 100, 32 108"/>
+      <path d="M100 60 C 112 66, 118 78, 114 92"/>
+      <path d="M60 100 C 66 112, 78 118, 92 114"/>
+    </symbol>
+  </defs>
+</svg>
+<svg class="corner tl" viewBox="0 0 160 160" aria-hidden="true"><use href="#flo"/></svg>
+<svg class="corner tr" viewBox="0 0 160 160" aria-hidden="true"><use href="#flo"/></svg>
+<svg class="corner bl" viewBox="0 0 160 160" aria-hidden="true"><use href="#flo"/></svg>
+<svg class="corner br" viewBox="0 0 160 160" aria-hidden="true"><use href="#flo"/></svg>
+<div class="star l" aria-hidden="true">★</div>
+<div class="star r" aria-hidden="true">★</div>
+
+<main class="page">
+  <div class="std">Save the date!</div>
+
+  <div class="stage">
+    <div class="envelope" id="env" role="button" tabindex="0" aria-label="Apri la busta per scoprire se Milo ha accettato l'invito">
+      <div class="back"></div>
+      <div class="letter">
+        <div class="photo"></div>
+        <div class="hat"></div>
+        <div class="stamp">ACCETTATO ✓</div>
+      </div>
+      <div class="pocket"></div>
+      <div class="flap"></div>
+      <div class="cta">Scopri</div>
+    </div>
+  </div>
+  <div class="hint">(tocca la busta, ma con delicatezza)</div>
+
+  <section class="copy">
+    <div class="state before">
+      <p class="small">Scopri se Milo<br>ha accettato il tuo</p>
+      <div class="big">Invito</div>
+      <div class="date">Venerdì,<br>27 novembre
+        <small>(dopo cena, quindi nessuna scusa per il ritardo)</small>
+      </div>
+    </div>
+
+    <div class="state after" aria-live="polite">
+      <p class="small">Notizia bomba:<br>Milo sarà</p>
+      <div class="big">Presente!</div>
+      <div class="date">Venerdì,<br>27 novembre
+        <small>(puntuale. Più o meno. Porta anche il regalo, forse)</small>
+      </div>
+    </div>
+  </section>
+
+  <div class="std foot">Save the date!</div>
+</main>
+
+<script>
+  const env = document.getElementById('env');
+
+  function confetti(){
+    const r = env.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height*0.2;
+    const glyphs = ['★','✦','✶','•'];
+    for(let i=0;i<34;i++){
+      const s = document.createElement('span');
+      s.className = 'conf';
+      s.textContent = glyphs[i % glyphs.length];
+      s.style.left = cx + 'px';
+      s.style.top = cy + 'px';
+      s.style.color = i % 3 ? '#b5122a' : '#ee8f92';
+      s.style.fontSize = (12 + Math.random()*16) + 'px';
+      document.body.appendChild(s);
+      const dx = (Math.random()-.5) * 420;
+      const dy = -80 - Math.random()*220;
+      s.animate([
+        {transform:'translate(0,0) rotate(0deg)',opacity:1},
+        {transform:`translate(${dx*.6}px,${dy}px) rotate(${Math.random()*240}deg)`,opacity:1,offset:.4},
+        {transform:`translate(${dx}px,${dy + 420}px) rotate(${Math.random()*480}deg)`,opacity:0}
+      ],{duration:1800 + Math.random()*900,delay:700 + Math.random()*250,easing:'cubic-bezier(.2,.6,.4,1)',fill:'forwards'})
+       .onfinish = () => s.remove();
+    }
+  }
+
+  function openEnvelope(){
+    if(env.classList.contains('open')) return;
+    env.classList.add('open');
+    document.body.classList.add('revealed');
+    confetti();
+  }
+
+  env.addEventListener('click', openEnvelope);
+  env.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openEnvelope(); }
+  });
+</script>
+</body>
+</html>
